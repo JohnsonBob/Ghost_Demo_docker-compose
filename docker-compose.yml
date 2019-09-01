@@ -1,0 +1,48 @@
+version: "3"
+
+networks: 
+  ghost: 
+
+services: 
+  ghost-app:
+    image: ghost
+    restart: always
+    networks:
+      - ghost
+    depends_on:
+      - db
+    ports: 
+      - "2368:2368"
+    environment:
+      # see https://docs.ghost.org/docs/config#section-running-ghost-with-config-env-variables
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ghost
+      database__connection__password: ghost
+      database__connection__database: ghost
+
+  nginx: 
+    build: nginx
+    restart: always
+    networks: 
+      - ghost
+    depends_on: 
+      - ghost-app
+    ports: 
+      - "80:80"
+
+  db: 
+    image: "mariadb"
+    restart: always
+    networks: 
+      - ghost
+    environment: 
+      MYSQL_ROOT_PASSWORD: mysqlroot
+      MYSQL_DATABASE: ghost
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ghost
+    volumes: 
+      - $PWD/data:/var/lib/mysql
+    ports: 
+      - "3306:3306"
+
